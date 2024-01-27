@@ -9,6 +9,7 @@ class Basestation():
         self.video_cache=np.random.choice(np.arange(para.num_videos),size=para.cachelen,replace=False)
         # self.get_obs()
         self.all_video_hot=para.get_hot_zipf()
+
         self.video_hot=self.all_video_hot[self.video_cache]
     def sort(self,):
         # 根据概率值对视频ID进行排序   argsort()默认升序排序，所以热度越大的视频ID会排在后面
@@ -72,24 +73,18 @@ class env_():
         # obs=np.concatenate((self.BSs[0],self.BSs[0],self.BSs[0],),axis=0)
         obs=self.get_all_obs()
         return obs
-        # state：[time_step, carrier_left, tile_number]  加不加上tilenumber呢，这很有影响
-    # def get_o(self,snr,simi_min):
-    #     for oi in range(len(para.compress)):
-    #         simi=fitting.fitting_func(oi,snr)
-    #         if simi>=simi_min:
-    #             return para.compress[oi]
-    #     return 1.0
+
     def deal_each_bs(self,bs:Basestation):
         prob=bs.all_video_hot
         random_request=np.random.choice(np.arange(para.num_videos),size=para.request_times,p=prob)
         rs=[]
         for v in random_request:
             if v in bs.video_cache:
-                r=0.01
+                r=1
             elif v in self.all_cache:
-                r=0.01-para.delay_n
+                r=1-para.delay_n
             else:
-                r=0.01-para.delay_Cloud
+                r=1-para.delay_Cloud
             rs.append(r)
         return sum(rs)
 

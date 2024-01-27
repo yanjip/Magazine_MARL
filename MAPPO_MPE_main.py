@@ -11,13 +11,29 @@ import envs
 from tqdm import tqdm
 import datetime
 from Draw_pic import *
+import os
+def get_file_model(folder_path = "runs/model/"):
+    # folder_path = "runs/model/"  # 需要修改成你想要操作的文件夹路径
+    file_list = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    sorted_files = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(folder_path, x)), reverse=True)
+    latest_file = sorted_files[0]
+    return latest_file
 
-def norm_state(obs):
-    res=[]
-    for o in obs:
-        nor_o= runner.state_norm(o)
-        res.append(nor_o)
-    return res
+def save_state_norm(state_norm):
+    filepath="runs/model/state_norm/"+curr_time+'state_norm.pkl'
+    with open(filepath, 'wb') as file:
+        pickle.dump(state_norm, file)
+
+def load_state_norm():
+    file=get_file_model(folder_path="runs/model/state_norm")
+    file = "runs/model/state_norm/" + file
+    with open(file, 'rb') as file_name:
+        s_n = pickle.load(file_name)
+    return s_n
+
+
+
+
 
 
 class Runner_MAPPO_MPE:
@@ -61,6 +77,13 @@ class Runner_MAPPO_MPE:
             print("------use reward scaling------")
             self.reward_scaling = RewardScaling(shape=self.args.N, gamma=self.args.gamma)
 
+    def norm_state(self, obs):
+        res = []
+        for o in obs:
+            nor_o = self.state_norm(o)
+            res.append(nor_o)
+        return res
+
     def run(self, time):
 
         rewards = []
@@ -69,7 +92,7 @@ class Runner_MAPPO_MPE:
         for total_steps in tqdm(range(1, args.max_train_steps + 1)):
             # while self.total_steps < self.args.max_train_steps:
             if total_steps % self.args.evaluate_freq == 0:
-                self.evaluate_policy()  # Evaluate the policy every 'evaluate_freq' steps
+                # self.evaluate_policy()  # Evaluate the policy every 'evaluate_freq' steps
                 evaluate_num += 1
             #-------------每个eposide-----------------
             ep_reward, episode_steps = self.run_episode_mpe(evaluate=False)  # Run an episode
@@ -90,6 +113,7 @@ class Runner_MAPPO_MPE:
         path = 'runs/model/ppo_' + time + '.pth'
         torch.save(self.agent_n.actor.state_dict(), path)
         # self.agent_n.save_model(self.env_name, self.number, self.seed, self.total_steps)
+        save_state_norm(self.state_norm)
         return {'episodes': range(len(rewards)), 'rewards': rewards, 'ma_rewards': ma_rewards}
 
 
@@ -110,7 +134,7 @@ class Runner_MAPPO_MPE:
     def run_episode_mpe(self, evaluate=False):
         episode_reward = 0
         obs_n = self.env.reset() #[[...], [....],   ] 都是列表
-        obs_n=norm_state(obs_n)
+        obs_n=self.norm_state(obs_n)
         if self.args.use_reward_scaling:
             self.reward_scaling.reset()
         if self.args.use_rnn:  # If use RNN, before the beginning of each episode，reset the rnn_hidden of the Q network.
@@ -126,7 +150,7 @@ class Runner_MAPPO_MPE:
             v_n = self.agent_n.get_value(s)  # Get the state values (V(s)) of N agents
             obs_next_n, r_n, done_n, _ = self.env.step(a_n)
             episode_reward += sum(r_n)   #reward也是相同的三个值
-            obs_next_n = norm_state(obs_next_n)
+            obs_next_n = self.norm_state(obs_next_n)
 
             if not evaluate:
                 if self.args.use_reward_norm:
@@ -148,11 +172,24 @@ class Runner_MAPPO_MPE:
             self.replay_buffer.store_last_value(episode_step + 1, v_n)
 
         return episode_reward, episode_step + 1
+    def test(self,):
+        model = get_file_model()
+        path = 'runs/model/' + model
+        self.agent_n.load_model(path)
+        self.state_norm=load_state_norm()
+        all_r=[]
+        for i in range(1, 10):
+            #-------------每个eposide-----------------
+            ep_reward, episode_steps = self.run_episode_mpe(evaluate=False)  # Run an episode
+            print("ep_reward:", ep_reward)
+            all_r.append(ep_reward)
+        print("avg_ep_reward:", sum(all_r)/len(all_r))
+        return sum(all_r)/len(all_r)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Hyperparameters Setting for MAPPO in MPE environment")
-    parser.add_argument("--max_train_steps", type=int, default=int(1e3), help=" Maximum number of training steps")
+    parser.add_argument("--max_train_steps", type=int, default=int(1.5e3), help=" Maximum number of training steps")
     parser.add_argument("--episode_limit", type=int, default=para.Times, help="Maximum number of steps per episode")
     parser.add_argument("--evaluate_freq", type=float, default=5000, help="Evaluate the policy every 'evaluate_freq' steps")
     parser.add_argument("--evaluate_times", type=float, default=3, help="Evaluate times")
@@ -181,10 +218,15 @@ if __name__ == '__main__':
     parser.add_argument("--use_value_clip", type=float, default=False, help="Whether to use value clip.")
 
     args = parser.parse_args()
-    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=3)
+    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=52)
     curr_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    res_dic=runner.run(curr_time)
+    # train=True
+    train=False
+    if train:
+        res_dic=runner.run(curr_time)
 
-    train_log_dir='runs/reward/'+curr_time
-    np.save(train_log_dir + '_reward.npy', np.array(res_dic['rewards']))
-    plot_rewards(res_dic['rewards'], curr_time, path='runs/pic')
+        train_log_dir='runs/reward/'+curr_time
+        np.save(train_log_dir + '_reward.npy', np.array(res_dic['rewards']))
+        plot_rewards(res_dic['rewards'], curr_time, path='runs/pic')
+    else:
+        runner.test()
