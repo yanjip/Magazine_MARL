@@ -178,9 +178,9 @@ class Runner_MAPPO_MPE:
         self.agent_n.load_model(path)
         self.state_norm=load_state_norm()
         all_r=[]
-        for i in range(1, 10):
+        for i in range(1, 30):
             #-------------每个eposide-----------------
-            ep_reward, episode_steps = self.run_episode_mpe(evaluate=False)  # Run an episode
+            ep_reward, episode_steps = self.run_episode_mpe(evaluate=True)  # Run an episode
             print("ep_reward:", ep_reward)
             all_r.append(ep_reward)
         print("avg_ep_reward:", sum(all_r)/len(all_r))
@@ -220,8 +220,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=52)
     curr_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    # train=True
-    train=False
+    train=True
+    # train=False
     if train:
         res_dic=runner.run(curr_time)
 

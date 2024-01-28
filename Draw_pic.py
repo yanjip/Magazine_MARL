@@ -152,41 +152,41 @@ def pic_reward():
     # r1=np.load('runs/rewards/2023_12_25-15_27_51_reward.npy')
     # r2=np.load('runs/rewards/2023_12_24-21_16_04_reward.npy')
 
-    r1=np.load("runs/reward/2024_01_27-14_20_25_reward.npy")
+    r1=np.load("runs/reward/2024_01_27-20_44_29_reward.npy")
     # r2=np.load('runs/rewards/2023_12_16-15_08_24_reward.npy')
 
     plot_rewards_from_file(r1,times='1_27')
 
 
 
-def plot_Delay_bar(x,res):
+def plot_Qoe_bar(x,res):
     plt.rcParams['font.family'] = 'serif'
     plt.rcParams['font.serif'] = 'Times New Roman'
-    plt.rcParams['font.weight'] = 'bold'
+    # plt.rcParams['font.weight'] = 'bold'
     plt.rc('font', size=13)
     plt.grid(linestyle="--", color="gray", linewidth="0.5", axis="both")
     proposed, b1, b2, b3 = process_res(res)
-    categories =[0.20, 0.30, 0.40, 0.50,0.6]
+    categories =[1.8,2.0,2.2,2.4,2.6]
     x = np.arange(len(categories))
     # 使用plt.bar()替代plt.plot()
     width = 0.2  # 设置柱状图的宽度
 
     plt.bar(x, proposed, width=width, label='Proposed Scheme')
     plt.bar([i + width for i in x], b1, width=width, label='Baseline 1', alpha=0.7)
-    plt.bar([i + 2 * width for i in x], b2, width=width, label='Baseline 2', alpha=0.7)
-    plt.bar([i + 3 * width for i in x], b3, width=width, label='Baseline 3', alpha=0.7)
-    plt.ylim(0.01, 0.20)
+    plt.bar([i + 2* width for i in x], b3, width=width, label='Baseline 3', alpha=0.7)
+    plt.bar([i + 3 * width for i in x], b2, width=width, label='Baseline 2', alpha=0.7)
+    plt.ylim(1000,1700)
 
 
     plt.xticks([i + 1.5 * width for i in x], categories)  # 调整x轴刻度位置
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
-    plt.xlabel(r'Maximum power (W)', fontsize=17, fontweight='bold', labelpad=0)
-    plt.ylabel('Average transmission latency (s)', fontsize=17, fontweight='bold', labelpad=0)
+    plt.xlabel(r'$\gamma$', fontsize=17, labelpad=0)
+    plt.ylabel('QoE', fontsize=17, labelpad=1)
     plt.legend(ncol=2)
 
     a = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    plt.savefig("runs/baseline/Power" + a, dpi=600, bbox_inches='tight', pad_inches=0.01)
+    plt.savefig("runs/baseline/Qoe" + a, dpi=600, bbox_inches='tight', pad_inches=0.01)
     plt.show()
 
 def rainbow(data1,data2):
@@ -210,10 +210,15 @@ def rainbow(data1,data2):
     plt.grid(True)
     plt.show()
 if __name__ == '__main__':
-    data1 = np.load("runs/reward/2024_01_27-14_31_39_reward.npy")
-    data2 = np.load("runs/reward/2024_01_27-14_32_23_reward.npy")
-    rainbow(data1,data2)
+    # data1 = np.load("runs/reward/2024_01_27-14_31_39_reward.npy")
+    # data2 = np.load("runs/reward/2024_01_27-14_32_23_reward.npy")
+    # rainbow(data1,data2)
 
     # pic_reward()
+
+
+    zs=[1.8,2.0,2.2,2.4,2.6]
+    res = np.load('runs/simulation_res/Qoe.npy')
+    plot_Qoe_bar(zs,res)
 
     pass

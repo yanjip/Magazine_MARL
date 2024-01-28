@@ -10,6 +10,8 @@ class Basestation():
         # self.get_obs()
         self.all_video_hot=para.get_hot_zipf()
 
+        self.ini_state=[self.video_cache,self.all_video_hot]
+
         self.video_hot=self.all_video_hot[self.video_cache]
     def sort(self,):
         # 根据概率值对视频ID进行排序   argsort()默认升序排序，所以热度越大的视频ID会排在后面
@@ -29,17 +31,22 @@ class Basestation():
         self.update_hot()
         self.get_dummy()
         self.obs=np.concatenate((self.all_video_hot,self.dummy_video_cache),axis=0)
+        # self.obs = self.dummy_video_cache
         return self.obs
     def get_next_obs(self,action):
         self.update_hot()  # 下一个时隙的热度
         if np.isin(action, self.video_cache):
             self.obs = np.concatenate((self.all_video_hot, self.dummy_video_cache), axis=0)
+            # self.obs = self.dummy_video_cache
+
             # self.get_dummy()
             return self.obs  #下一个状态
         self.video_cache[0]=action
         self.sort()
         self.get_dummy()
         self.obs=np.concatenate((self.all_video_hot,self.dummy_video_cache),axis=0)
+        # self.obs = self.dummy_video_cache
+
         return self.obs
 
 

@@ -8,9 +8,12 @@ from MAPPO_MPE_main import *
 
 
 class Baseline1():   # 随机算法
-    def __init__(self):
+    def __init__(self,BSs):
         self.rewards=[]
         self.BSs=BSs
+        for b in self.BSs:
+            b.video_cache=b.ini_state[0]
+            b.all_video_hot=b.ini_state[1]
         pass
     def deal_each_bs(self, bs: envs.Basestation):
         prob = bs.all_video_hot
@@ -37,16 +40,19 @@ class Baseline1():   # 随机算法
         return sum(self.rewards)
     def get_avg_Qoe(self,):
         res=[]
-        for i in range(10):
+        for i in range(para.test_times):
             self.rewards=[]
             r=self.get_QoE()
             res.append(r)
         print("Baseline1:",sum(res)/len(res))
         return sum(res)/len(res)
 class Baseline2():   # 非协作做法
-    def __init__(self):
+    def __init__(self,BSs):
         self.rewards=[]
         self.BSs=BSs
+        for b in self.BSs:
+            b.video_cache=b.ini_state[0]
+            b.all_video_hot=b.ini_state[1]
     def deal_each_bs(self, bs: envs.Basestation):
         prob = bs.all_video_hot
         random_request = np.random.choice(np.arange(para.num_videos), size=para.request_times, p=prob)
@@ -70,20 +76,24 @@ class Baseline2():   # 非协作做法
         return sum(self.rewards)
     def get_avg_Qoe(self,):
         res=[]
-        for i in range(10):
+        for i in range(para.test_times):
             self.rewards=[]
             r=self.get_QoE()
             res.append(r)
         print("Baseline2:",sum(res)/len(res))
         return sum(res)/len(res)
 class Baseline3():   # 随机算法
-    def __init__(self):
+    def __init__(self,BSs):
         self.rewards=[]
         self.BSs=BSs
+        for b in self.BSs:
+            b.video_cache=b.ini_state[0]
+            b.all_video_hot=b.ini_state[1]
         pass
     def deal_each_bs(self, bs: envs.Basestation):
         prob = bs.all_video_hot
-        random_request = np.random.choice(np.arange(para.num_videos), size=para.request_times, p=prob)
+        # random_request = np.random.choice(np.arange(para.num_videos), size=para.request_times, p=prob)
+        random_request =para.request(prob)
         rs = []
         for v in random_request:
             if v in bs.video_cache:
@@ -104,13 +114,13 @@ class Baseline3():   # 随机算法
                 r+=reward
             self.rewards.append(r)
             for i in range(para.N):
-                action=np.random.randint(para.action_dim,size=3)
+                action=np.random.randint(para.num_videos,size=3)
                 self.BSs[i].get_next_obs(action[i])
 
         return sum(self.rewards)
     def get_avg_Qoe(self,):
         res=[]
-        for i in range(10):
+        for i in range(para.test_times):
             self.rewards=[]
             r=self.get_QoE()
             res.append(r)
@@ -147,10 +157,10 @@ if __name__ == '__main__':
     parser.add_argument("--use_value_clip", type=float, default=False, help="Whether to use value clip.")
 
     args = parser.parse_args()
-    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=8978578)
+    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=52)  #8978578
     curr_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
     para.train=False
-    runner.test()
+    pro=runner.test()
 
     BSs=runner.env.BSs
 
