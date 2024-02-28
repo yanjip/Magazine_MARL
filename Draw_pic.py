@@ -200,7 +200,6 @@ def rainbow(data1,data2):
     y_max = y_mean + y_std * 0.99
     y_min = y_mean - y_std * 0.99
 
-
     x = np.arange(0, len(data1), 1)
 
     fig = plt.figure(1)
@@ -210,15 +209,15 @@ def rainbow(data1,data2):
     plt.grid(True)
     plt.show()
 if __name__ == '__main__':
-    # data1 = np.load("runs/reward/2024_01_27-14_31_39_reward.npy")
-    # data2 = np.load("runs/reward/2024_01_27-14_32_23_reward.npy")
-    # rainbow(data1,data2)
+    data1 = np.load("runs/reward/2024_01_27-20_44_29_reward.npy")
+    data2 = np.load("runs/reward/2024_01_28-13_31_52_reward.npy")
+    rainbow(data1,data2)
 
     # pic_reward()
 
 
-    zs=[1.8,2.0,2.2,2.4,2.6]
-    res = np.load('runs/simulation_res/Qoe.npy')
-    plot_Qoe_bar(zs,res)
+    # zs=[1.8,2.0,2.2,2.4,2.6]
+    # res = np.load('runs/simulation_res/Qoe.npy')
+    # plot_Qoe_bar(zs,res)
 
     pass

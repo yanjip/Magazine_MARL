@@ -218,7 +218,7 @@ if __name__ == '__main__':
     parser.add_argument("--use_value_clip", type=float, default=False, help="Whether to use value clip.")
 
     args = parser.parse_args()
-    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=52)
+    runner = Runner_MAPPO_MPE(args, env_name="simple_spread", number=1, seed=52000)
     curr_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
     train=True
     # train=False
